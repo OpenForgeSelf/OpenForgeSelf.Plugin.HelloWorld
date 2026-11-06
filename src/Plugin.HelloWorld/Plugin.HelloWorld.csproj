@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Plugin.HelloWorld</RootNamespace>
+    <AssemblyName>Plugin.HelloWorld</AssemblyName>
+    <VersionPrefix>1.0.1</VersionPrefix>
+    <Version>1.0.1</Version>
+    <PackageVersion>1.0.1.0</PackageVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <Description>NuGet PackageVersion uses three segments plus .0; plugin.json Version stays in lockstep with the git tag.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ForgeSelf.PluginManifest.json" LogicalName="ForgeSelf.PluginManifest.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ForgeSelf.Abstractions" Private="false">
+      <HintPath>..\..\lib\ForgeSelf.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="ForgeSelf.Core" Private="false">
+      <HintPath>..\..\lib\ForgeSelf.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

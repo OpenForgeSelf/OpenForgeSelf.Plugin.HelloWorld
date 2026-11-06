@@ -1,0 +1,13 @@
+{
+  "Id": "hello-world",
+  "Name": "HelloWorld",
+  "Version": "1.0.1",
+  "Author": "OpenForgeSelf",
+  "Description": "OpenForgeSelf 独立插件示例（一个插件一个仓库）。",
+  "EntryAssembly": "Plugin.HelloWorld.dll",
+  "EntryType": "Plugin.HelloWorld.HelloPlugin",
+  "HostApiVersion": "1.0",
+  "Dependencies": [],
+  "Permissions": [],
+  "RepositoryUrl": "https://github.com/OpenForgeSelf/OpenForgeSelf.Plugin.HelloWorld"
+}

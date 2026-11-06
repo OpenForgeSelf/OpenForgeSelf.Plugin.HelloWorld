@@ -1,0 +1,50 @@
+name: release
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  pack:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: test
+        run: dotnet test tests/Plugin.HelloWorld.Tests/Plugin.HelloWorld.Tests.csproj --nologo
+      - name: package zip
+        shell: pwsh
+        run: |
+          $name = $env:GITHUB_REPOSITORY.Split('/')[1] -replace '^OpenForgeSelf\.Plugin\.', ''
+          $ver = $env:GITHUB_REF_NAME.TrimStart("v")
+          dotnet publish src/Plugin.HelloWorld/Plugin.HelloWorld.csproj -c Release -o "$env:RUNNER_TEMP/pub" --nologo
+          Copy-Item plugin.json "$env:RUNNER_TEMP/pub/plugin.json"
+          Get-ChildItem "$env:RUNNER_TEMP/pub" -File | Where-Object {
+            $n = $_.Name
+            $n.StartsWith('ForgeSelf.') -or $n.StartsWith('NewLife.') -or $n.StartsWith('Microsoft.Extensions.') -or $n -in @('XCode.dll','XCode.pdb','MX.dll','MX.pdb')
+          } | Remove-Item -Force
+          Compress-Archive -Path "$env:RUNNER_TEMP/pub/*" -DestinationPath "HelloWorld-$ver.zip"
+          Get-FileHash "HelloWorld-$ver.zip" -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  HelloWorld-$ver.zip" } | Set-Content SHA256SUMS.txt -Encoding utf8
+      - name: github release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            HelloWorld-*.zip
+            SHA256SUMS.txt
+      - name: nuget pack and push
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          $id = $env:GITHUB_REPOSITORY.Split('/')[1]
+          $ver = $env:GITHUB_REF_NAME.TrimStart("v")
+          $nu = if ($ver -match '^(\d+\.\d+\.\d+)\.\d+$') { $Matches[1] + '.0' } else { $ver }
+          dotnet pack src/Plugin.HelloWorld/Plugin.HelloWorld.csproj -c Release -o "$env:RUNNER_TEMP/nupkg" -p:PackageId="$id" -p:PackageVersion="$nu" --nologo
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
+            Write-Host "NUGET_API_KEY not configured: nupkg built, upload skipped (human-gated)."
+            exit 0
+          }
+          Get-ChildItem "$env:RUNNER_TEMP/nupkg" -Filter *.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName --source https://api.nuget.org/v3/index.json --api-key "$env:NUGET_API_KEY" --skip-duplicate
+          }
